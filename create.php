@@ -28,39 +28,56 @@
         </form>
     </div>
 
-    <script>
-    document.querySelector('form').addEventListener('submit', async (e) => {
-        e.preventDefault(); // Evitar el envío tradicional del formulario
-
-        const formData = new FormData(e.target);
-        const response = await fetch(e.target.action, {
-            method: 'POST',
-            body: formData
-        });
-        const result = await response.json();
-
-        if (result.status === 'success') {
-            Swal.fire({
-                icon: 'success',
-                title: result.message,
-                showConfirmButton: false,
-                timer: 2000
-            }).then(() => {
-                window.location.href = result.redirect;
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: result.message
-            });
-        }
-    });
-</script>
-
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Manejar el envío del formulario -->
+    <script>
+        document.querySelector('form').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evitar el envío tradicional del formulario
+
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch(e.target.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error en la solicitud.');
+                }
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: result.message,
+                        showConfirmButton: false,
+                        timer: 2000
+                    }).then(() => {
+                        if (result.redirect) {
+                            window.location.href = result.redirect;
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Hubo un problema al procesar la solicitud.'
+                });
+                console.error(error);
+            }
+        });
+    </script>
 </body>
 </html>

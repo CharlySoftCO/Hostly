@@ -39,7 +39,7 @@ foreach ($configFiles as $file) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de VirtualHost</title>
+    <title>Listado de Proyectos</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- SweetAlert2 CSS -->
@@ -47,7 +47,6 @@ foreach ($configFiles as $file) {
     <style>
         .card {
             transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
         }
         .card:hover {
             transform: translateY(-5px);
@@ -61,7 +60,7 @@ foreach ($configFiles as $file) {
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Listado de VirtualHost</h1>
+        <h1 class="text-center mb-4">Listado de Proyectos</h1>
         <div class="text-center mb-4">
             <a href="create.php" class="btn btn-success">Crear Nuevo VirtualHost</a>
             <a href="actions/reload_apache.php" class="btn btn-info">Recargar Apache</a>
@@ -70,15 +69,17 @@ foreach ($configFiles as $file) {
             <?php if (!empty($virtualHosts)): ?>
                 <?php foreach ($virtualHosts as $vhost): ?>
                     <div class="col-md-4 mb-4">
-                        <div class="card h-100 shadow" onclick="window.location.href='http://<?= $vhost['name'] ?>'">
+                        <div class="card h-100 shadow">
                             <img src="https://picsum.photos/300/150?random=<?= rand(1, 1000) ?>" class="card-img-top" alt="Imagen aleatoria">
                             <div class="card-body">
                                 <h5 class="card-title"><?= $vhost['name'] ?></h5>
                                 <p class="card-text"><?= $vhost['path'] ?></p>
+                                <a href="http://<?= $vhost['name'] ?>" class="btn btn-primary btn-sm" target="_blank">Visitar</a>
                                 <a href="edit.php?name=<?= $vhost['name'] ?>" class="btn btn-warning btn-sm">Editar</a>
-                                <form action="actions/delete_vhost.php" method="POST" style="display: inline;">
+                                <form action="actions/delete_vhost.php" method="POST" class="delete-form" style="display: inline;">
                                     <input type="hidden" name="serverName" value="<?= $vhost['name'] ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                    <input type="hidden" name="documentRoot" value="<?= $vhost['path'] ?>">
+                                    <button type="button" class="btn btn-danger btn-sm delete-button">Eliminar</button>
                                 </form>
                             </div>
                         </div>
@@ -87,7 +88,7 @@ foreach ($configFiles as $file) {
             <?php else: ?>
                 <div class="col-12">
                     <div class="alert alert-warning text-center">
-                        No se encontraron VirtualHost configurados.
+                        No se encontraron proyectos configurados.
                     </div>
                 </div>
             <?php endif; ?>
@@ -116,6 +117,28 @@ foreach ($configFiles as $file) {
                 window.history.replaceState({}, document.title, window.location.pathname);
             });
         }
+
+        // Manejar la eliminación con SweetAlert2
+        document.querySelectorAll('.delete-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const form = e.target.closest('form'); // Obtener el formulario más cercano
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "¡No podrás revertir esto!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Enviar el formulario si el usuario confirma
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>
